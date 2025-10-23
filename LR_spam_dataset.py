@@ -1,4 +1,4 @@
-from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score,confusion_matrix
 import numpy as np
 from ucimlrepo import fetch_ucirepo  
@@ -36,7 +36,6 @@ def unison_shuffled_copies(a, b):
     return a[shuffled_indices], b[shuffled_indices]
 
 X, y = unison_shuffled_copies(X,y)
-y = np.array([-1 if yval == 0 else 1 for yval in y.tolist()])
 
 rows, _ = X.shape
 test_count = rows // 10      # 10%
@@ -73,10 +72,10 @@ best_acc = -1
 best_params = (float('inf'),float('inf'))
 best_model = None
 for epoch, C in zip(n_epochs_list, c_list):
-    svm = LinearSVC(C=C, max_iter =epoch)
-    svm.fit(X_train, y_train)
+    LR = LogisticRegression(C=C, max_iter =epoch)
+    LR.fit(X_train, y_train)
     print(f"Finished training with epoch: {epoch} and C: {C}")
-    y_pred = svm.predict(X_dev) #predict label on dev set
+    y_pred = LR.predict(X_dev) #predict label on dev set
     acc = accuracy_score(y_dev, y_pred) * 100
     cm = confusion_matrix(y_dev, y_pred)
     print(f"The accuracy with epoch {epoch} and C {C} using the dev set is {acc:.2f}%")
@@ -88,7 +87,7 @@ for epoch, C in zip(n_epochs_list, c_list):
     if acc > best_acc or (acc == best_acc and epoch < best_params[1]):
         best_acc = acc
         best_params = (C, epoch)
-        best_model = svm
+        best_model = LR
 
 y_pred = best_model.predict(X_test)
 acc = accuracy_score(y_test,y_pred) * 100

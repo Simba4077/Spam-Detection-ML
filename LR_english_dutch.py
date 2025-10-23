@@ -1,4 +1,4 @@
-from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score,confusion_matrix
 import numpy as np
 import warnings
@@ -6,7 +6,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 import re
 """
-labels[1 = english, -1 = dutch]
+labels[1 = english, 0 = dutch]
 
 Creates 2 separate .csv file with different features from english and dutch  
 1. For training set (uni declaration) 
@@ -67,7 +67,7 @@ for text in english_test_text:
 for text in dutch_test_text:
     features = extract_features(text)
     X_train.append(list(features.values()))
-    y_train.append([-1])
+    y_train.append([0])
 
 
 for text in english_other_text:
@@ -78,7 +78,7 @@ for text in english_other_text:
 for text in dutch_other_text:
     features = extract_features(text)
     X_other.append(list(features.values()))
-    y_other.append([-1])
+    y_other.append([0])
 
 X_train = np.array(X_train, dtype=float)
 y_train = np.array(y_train, dtype=float).ravel()
@@ -104,7 +104,6 @@ y_dev = y_other[:20]
 X_test = X_other[20:40]
 y_test = y_other[20:40]
 
-print(y_dev.shape)
 
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
@@ -128,10 +127,10 @@ best_acc = -1
 best_params = (float('inf'),float('inf'))
 best_model = None
 for epoch, C in zip(n_epochs_list, c_list):
-    svm = LinearSVC(C=C, max_iter =epoch)
-    svm.fit(X_train, y_train)
+    LR = LogisticRegression(C=C, max_iter =epoch)
+    LR.fit(X_train, y_train)
     print(f"Finished training with epoch: {epoch} and C: {C}")
-    y_pred = svm.predict(X_dev) #predict label on dev set
+    y_pred = LR.predict(X_dev) #predict label on dev set
     acc = accuracy_score(y_dev, y_pred) * 100
     cm = confusion_matrix(y_dev, y_pred)
     print(f"The accuracy with epoch {epoch} and C {C} using the dev set is {acc:.2f}%")
@@ -143,7 +142,7 @@ for epoch, C in zip(n_epochs_list, c_list):
     if acc > best_acc or (acc == best_acc and epoch < best_params[1]):
         best_acc = acc
         best_params = (C, epoch)
-        best_model = svm
+        best_model = LR
 
 y_pred = best_model.predict(X_test)
 acc = accuracy_score(y_test,y_pred) * 100

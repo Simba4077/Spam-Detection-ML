@@ -16,7 +16,6 @@ def unison_shuffled_copies(a, b):
 X, y = unison_shuffled_copies(X,y)
 y = np.array([-1 if yval == 0 else 1 for yval in y.tolist()])
 
-print(X.shape)
 rows, _ = X.shape
 test_count = rows // 10      # 10%
 dev_count = rows // 10       # 10%
@@ -101,12 +100,14 @@ def confusion_matrix(X, y, weights, bias):
 #train perceptron on spam dataset
 epoch_weights = {}
 epoch_biases = {}
+print()
 n_epochs_list = [int(x.strip()) for x in input("Enter different epochs to train on (e.g. 1,2,3,4,5,...): ").split(',')]
 for epoch in n_epochs_list:
     weights, bias = train_perceptron(X_train, y_train, int(epoch))
     epoch_weights[epoch] = weights
     epoch_biases[epoch] = bias
-print("Found corresponding weights and bias for each epoch")
+print("Found corresponding weights and bias for each epoch!")
+print("-----------------------------------------------------")
 
 accuracies = {}
 #evaluate on dev set
@@ -117,12 +118,19 @@ for n_epochs in epoch_weights.keys():
     TP, FP, TN, FN = confusion_matrix(X_dev, y_dev, weights, bias)
     print(f"Confusion Matrix (total count of each):\nTP: {TP:.2f}, FP: {FP:.2f}, TN: {TN:.2f}, FN: {FN:.2f}")
     accuracy = (TP + TN) / (len(y_dev)) * 100
-    print(f"Accuracy: {accuracy}%")
+    print(f"Accuracy: {accuracy:.2f}%")
     print("--------------------------------------------------------")
     accuracies[n_epochs] = accuracy
 
-#select best epoch based on dev set accuracy
-best_epoch = max(accuracies, key=accuracies.get)
+#select best epoch based on dev set accuracy and lowest epochs
+best_epoch = None
+best_acc = -1
+
+for epoch, acc in accuracies.items():
+    if acc > best_acc or (acc == best_acc and (best_epoch is None or epoch < best_epoch)):
+        best_acc = acc
+        best_epoch = epoch
+
 
 #trained perceptron with best epoch, evaluate on test set
 print("--------------------------------------------------------")
@@ -132,7 +140,8 @@ bias = epoch_biases[best_epoch]
 TP, FP, TN, FN = confusion_matrix(X_test, y_test, weights, bias)
 print(f"Confusion Matrix (total count of each):\nTP: {TP:.2f}, FP: {FP:.2f}, TN: {TN:.2f}, FN: {FN:.2f}")
 accuracy = (TP + TN) / (len(y_test)) * 100
-print(f"Accuracy: {accuracy}%")
+print(f"Accuracy: {accuracy:.2f}%")
+print()
 
 
 
